@@ -12,6 +12,8 @@ class Usuario_DAO:
     login: str
     senha: str
 
+
+
     def adicionar_usuario(self, nome, email, cpf, data_nascimento, login, senha):
         a=1
 
@@ -23,13 +25,4 @@ class Usuario_DAO:
         else:
             print("Nao passa")
             return False
-        
-    def verificar_name_user(username):
-        with open(r"DAO/names.txt", "r", encoding="utf-8") as arquivo:
-            linha = arquivo.read().splitlines()
-        for value in linha:
-            if(username == value):
-                return False
-
-        return True
         
