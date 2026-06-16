@@ -994,3 +994,4 @@ operadora
 tecnico
 central
 ouvidoria
+admlnistrador

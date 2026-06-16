@@ -1,5 +1,5 @@
 import unicodedata
-class Security_Username:
+class SecurityUsername:
 
     def __init__(self):
         
