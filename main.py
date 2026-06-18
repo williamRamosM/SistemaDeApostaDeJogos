@@ -1,2 +1,2 @@
-from DAO import usuario_dao
-from Models.security_username import SecurityUsername
+import secrets
+print(secrets.token_hex(32))

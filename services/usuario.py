@@ -1,37 +1,41 @@
 import re
-from Models.security_username import SecurityUsername
+from services.security_username import SecurityUsername
+from Models.usuario import Usuario
 from datetime import date
 
-class UsuarioDAO:
+class Usuario:
 
     def adicionar_usuario(self, nome, email, cpf, data_nascimento, login, senha):
-        name = SecurityUsername().rescrever_username(nome)
-        self.nome = _name = SecurityUsername.verificar_username(name)
-        namelogin = SecurityUsername().rescrever_username(login)
-        self.nome = _namelogin = SecurityUsername.verificar_username(namelogin)
-        self.data_nascimento: date = data_nascimento
         
-        if not(_name):
+        validate = SecurityUsername()
+        usuario = Usuario(nome=nome, email=email, cpf=cpf, data_nascimento=data_nascimento, login=login, senha=senha)
+
+        data_nascimento2: date = data_nascimento
+        
+        if not(validate.verificar_username(username=usuario.nome)):
             TypeError("System > Usuario digitou um nome proibido!")
-        if not(self.verificar_email(email=email)):
+
+        if not(self.verificar_email(email=usuario.email)):
             TypeError("System > Usuario digitou um email invalido!")
-        if not(self.verificar_cpf(cpf=cpf)):
+
+        if not(self.verificar_cpf(cpf=usuario.cpf)):
             TypeError("System > Usuario digitou um CPF invalido!")
-        if not(_namelogin):
-            TypeError("System > Usuario digitou um nome proibido!") 
-        if not(self.verificar_senha(senha=senha)):
+
+        if not(validate.verificar_username(username=usuario.login)):
+            TypeError("System > Usuario digitou um login proibido!")
+
+        if not(self.verificar_senha(senha=usuario.senha)):
             TypeError("System > Usuario digitou uma senha invalida!")
 
         return {
-            "nome": _name,
+            "nome": nome,
             "email": email,
             "cpf": cpf,
-            "data_nascimento": data_nascimento,
-            "login": _namelogin,
+            "data_nascimento": data_nascimento2,
+            "login": login,
             "senha": senha  
         }
                             
-                
     def verificar_senha(self, senha):
         formula = r'^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$'
         if re.match(formula, senha):
