@@ -5,11 +5,14 @@ from decimal import Decimal
 
 class Usuario(SQLModel, table=True):
     
+    __tablename__ = "usuarios"
+    __table_args__ = {"schema": "public"}
+
     id: Optional[int] = Field(default=None, primary_key=True)     
     name: str    
     email: str  
     cpf: str    
     date_birth: date
     login: str 
-    passworld: str 
+    password: str 
     points: Decimal = Field(default=Decimal("100"))

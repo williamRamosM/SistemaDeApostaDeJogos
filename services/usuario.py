@@ -1,68 +1,87 @@
-import re
+from services.security_passworld import SecurityPassWorld
 from services.security_username import SecurityUsername
-from Models.usuario import Usuario
+from repositories.usuarioBD import UsuarioBD
+from repositories.connectionBD import engine
+from Models.usuario import UsuarioModel
+from validate_docbr import CPF
+from sqlmodel import Session
 from datetime import date
+import re
 
 class Usuario:
 
     def adicionar_usuario(self, nome, email, cpf, data_nascimento, login, senha):
-        
-        validate = SecurityUsername()
-        usuario = Usuario(nome=nome, email=email, cpf=cpf, data_nascimento=data_nascimento, login=login, senha=senha)
-
+        usuario = UsuarioModel(nome=nome, email=email, cpf=cpf, data_nascimento=data_nascimento, login=login, senha=senha)
         data_nascimento2: date = data_nascimento
-        
-        if not(validate.verificar_username(username=usuario.nome)):
-            TypeError("System > Usuario digitou um nome proibido!")
+        validate_username = SecurityUsername()
+        cript = SecurityPassWorld()
+       
+        if not(validate_username.verificar_username(username=usuario.nome)):
+            raise TypeError("System > Usuario digitou um nome proibido!")
 
-        if not(self.verificar_email(email=usuario.email)):
-            TypeError("System > Usuario digitou um email invalido!")
+        if not(self._verificar_email(email=usuario.email)):
+            raise TypeError("System > Usuario digitou um email invalido!")
 
-        if not(self.verificar_cpf(cpf=usuario.cpf)):
-            TypeError("System > Usuario digitou um CPF invalido!")
+        if not(self._verificar_cpf(cpf=usuario.cpf)):
+            raise TypeError("System > Usuario digitou um CPF invalido!")
 
-        if not(validate.verificar_username(username=usuario.login)):
-            TypeError("System > Usuario digitou um login proibido!")
+        if not(validate_username.verificar_username(username=usuario.login)):
+            raise TypeError("System > Usuario digitou um login proibido!")
 
-        if not(self.verificar_senha(senha=usuario.senha)):
-            TypeError("System > Usuario digitou uma senha invalida!")
+        if not(self._verificar_senha(senha=usuario.senha)):
+            raise TypeError("System > Usuario digitou uma senha invalida!")
+
+        cpf_reformulado = self._formatacao_cpf(cpf=cpf)
+        senha_cript = cript.codificar_senha(senha)
+
+        with Session(engine) as session:
+            banco = UsuarioBD(session)
+            banco.cadastrar_usuario(
+                nome=nome,
+                email= email,
+                cpf= cpf_reformulado,
+                data_nascimento= data_nascimento2,
+                login= login,
+                senha= senha_cript
+            )
 
         return {
             "nome": nome,
             "email": email,
-            "cpf": cpf,
+            "cpf": self._formatacao_cpf(cpf=cpf),
             "data_nascimento": data_nascimento2,
             "login": login,
-            "senha": senha  
+            "senha": cript.codificar_senha(senha) 
         }
                             
-    def verificar_senha(self, senha):
-        formula = r'^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$'
+    def _verificar_senha(self, senha):
+        if(len(senha) != 8):
+            return False
+        
+        formula = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).+$'
+        
         if re.match(formula, senha):
             return True
         else:
             return False
         
-    def verificar_email(self, email):
+    def _verificar_email(self, email):
         formula = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
         if re.match(formula, email):
             return True
         else:
             return False
         
-    def verificar_cpf(self, cpf):
-        if(len(cpf) == 11):
-             formula = r'(\d{3})(\d{3})(\d{3})(\d{2})'
-             if re.match(formula, cpf):
-                return True
-             else:
-                return False
-             
-    def formatacao_cpf(self, cpf):
-        new_cpf = re.sub(r'\1.\2.\3-\4', cpf)
+    def _verificar_cpf(self, cpf):
+        cpf_valide = CPF()
+
+        if(len(cpf) != 11):
+            return False
+        if(cpf_valide.validate(cpf) == False):
+            return False
+        
+        return True
+       
+    def _formatacao_cpf(self, cpf):
+        new_cpf = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4',cpf)
         return new_cpf
-
-        
-
-        
-        
