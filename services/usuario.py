@@ -28,6 +28,8 @@ class Usuario:
         if not(validate_username.verificar_username(username=usuario.login)):
             raise TypeError("System > Usuario digitou um login proibido!")
 
+        self._verificar_login(usuario.login)
+
         if not(self._verificar_senha(senha=usuario.senha)):
             raise TypeError("System > Usuario digitou uma senha invalida!")
 
@@ -45,15 +47,22 @@ class Usuario:
                 senha= senha_cript
             )
 
-        return {
-            "nome": nome,
-            "email": email,
-            "cpf": self._formatacao_cpf(cpf=cpf),
-            "data_nascimento": data_nascimento2,
-            "login": login,
-            "senha": cript.codificar_senha(senha) 
-        }
-                            
+        return True
+    
+    def verificar_credencial(self, login, senha):
+        cript = SecurityPassWorld()
+
+        with Session(engine) as session:
+            banco = UsuarioBD(session)
+            user = banco.credencial_login(login=login)
+
+            if user is None:
+                raise TypeError("System > login ou senha invalidos")
+            if not cript.autenticar_senha(password_salvo=user.password,passworld_atual=senha):
+                raise TypeError("System > login ou senha invalidos")
+        return True
+    
+# funçoes privadas.                        
     def _verificar_senha(self, senha):
         if(len(senha) != 8):
             return False
@@ -85,3 +94,14 @@ class Usuario:
     def _formatacao_cpf(self, cpf):
         new_cpf = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4',cpf)
         return new_cpf
+
+    def _verificar_login(self, login):
+
+        with Session(engine) as session:
+            banco = UsuarioBD(session)
+            user = banco.credencial_login(login=login)
+
+            if user is not None:
+                raise TypeError("System > login ja registrado!")
+            
+        return True
