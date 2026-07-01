@@ -12,7 +12,7 @@ class Usuario:
 
     def adicionar_usuario(self, nome, email, cpf, data_nascimento, login, senha):
         usuario = UsuarioModel(nome=nome, email=email, cpf=cpf, data_nascimento=data_nascimento, login=login, senha=senha)
-        data_nascimento2: date = data_nascimento
+        #data_nascimento_tratado: date = data_nascimento
         validate_username = SecurityUsername()
         cript = SecurityPassWorld()
        
@@ -24,6 +24,9 @@ class Usuario:
 
         if not(self._verificar_cpf(cpf=usuario.cpf)):
             raise TypeError("System > Usuario digitou um CPF invalido!")
+        
+        if not(self._verificar_idade(data_nascimento=usuario.data_nascimento)):
+            raise TypeError("System > Usuario possui uma idade inferior a 18 anos!")
 
         if not(validate_username.verificar_username(username=usuario.login)):
             raise TypeError("System > Usuario digitou um login proibido!")
@@ -42,7 +45,7 @@ class Usuario:
                 nome=nome,
                 email= email,
                 cpf= cpf_reformulado,
-                data_nascimento= data_nascimento2,
+                data_nascimento = data_nascimento,
                 login= login,
                 senha= senha_cript
             )
@@ -60,8 +63,20 @@ class Usuario:
                 raise TypeError("System > login ou senha invalidos")
             if not cript.autenticar_senha(password_salvo=user.password,passworld_atual=senha):
                 raise TypeError("System > login ou senha invalidos")
+            if not user.status:
+                raise TypeError("System > Essa conta foi desativada!")
         return True
     
+    def remover_usuario(self, login):
+        with Session(engine) as session:
+            banco = UsuarioBD(session)
+            user = banco.excluir_usuario(login=login)
+
+            if (not user):
+                raise TypeError("System > Usuario nao existe!")
+            
+        return True
+
 # funçoes privadas.                        
     def _verificar_senha(self, senha):
         if(len(senha) != 8):
@@ -104,4 +119,15 @@ class Usuario:
             if user is not None:
                 raise TypeError("System > login ja registrado!")
             
+        return True
+    
+    def _verificar_idade(self, data_nascimento):
+        data_atual = date.today()
+        ano_calculado = data_atual.year - data_nascimento.year
+
+        if (data_atual.month, data_atual.day) < (data_nascimento.month, data_nascimento.day):
+            ano_calculado -= 1
+
+        if ano_calculado < 18:
+            return False
         return True

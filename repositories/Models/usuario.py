@@ -16,3 +16,4 @@ class Usuario(SQLModel, table=True):
     login: str 
     password: str 
     points: Decimal = Field(default=Decimal("100"))
+    status: bool = Field(default=True)
