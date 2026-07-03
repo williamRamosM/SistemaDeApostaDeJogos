@@ -2,6 +2,7 @@ from services.security_passworld import SecurityPassWorld
 from services.security_username import SecurityUsername
 from repositories.usuarioBD import UsuarioBD
 from repositories.connectionBD import engine
+from Models.usuario import UsuarioModelForLogin
 from Models.usuario import UsuarioModel
 from validate_docbr import CPF
 from sqlmodel import Session
@@ -77,6 +78,35 @@ class Usuario:
             
         return True
 
+    def mostrar_pontos(self, login):
+        with Session(engine) as session:
+            banco = UsuarioBD(session=session)
+            user = banco.capturar_saldo(login=login)
+
+            if not user:
+                raise ValueError("System > Usuario nao existe no sistema para poder mostrar o saldo!")
+      
+        return user
+
+    def alterar_senha(self, login, new_senha, confirmar_senha):
+        cript = SecurityPassWorld()
+        usuario = UsuarioModelForLogin(login=login,senha=new_senha)
+
+        if not self._confirmar_senha(password_one=new_senha, password_two=confirmar_senha):
+            raise ValueError("System > as senhas digitadas nao sao identicas!")
+
+        if not self._verificar_senha(senha=usuario.senha):
+                    raise TypeError("System > Usuario digitou uma senha invalida!")
+        
+        senha = cript.codificar_senha(usuario.senha)
+        with Session(engine) as session:
+            banco = UsuarioBD(session=session)
+            user = banco.atualizar_senha(login=usuario.login, new_senha=senha)
+
+            if not user:
+                raise TypeError("System > Usuario nao existe!")
+            
+            return True
 # funçoes privadas.                        
     def _verificar_senha(self, senha):
         if(len(senha) != 8):
@@ -131,3 +161,10 @@ class Usuario:
         if ano_calculado < 18:
             return False
         return True
+    
+    def _confirmar_senha(self, password_one, password_two):
+        if password_one == password_two:
+            return True
+        else:
+            return False
+

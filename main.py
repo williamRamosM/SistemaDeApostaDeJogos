@@ -2,13 +2,6 @@ from services.usuario import Usuario
 from datetime import date
 user = Usuario()
 
-# nome = "william"
-# email = "test@gmail.com"
-# cpf = "04809811085"
-# data = date(2006,10,3)
-# login = "william"
-# senha = "wiLL1@Mm"
-
 menu_tuple = ("Sair", "Status da minha aposta", "Multiplicar a aposta", "Cancelar minha participação nas apostas","Trocar a senha","Resultados de jogos anteriores de uma seleção ","Apostas ativas","Saldo de pontos","Ver o ranking de apostadores")
 
 def sing_up_user():
@@ -69,6 +62,46 @@ def login_user():
                 print(e)
 
     return status, login
+
+def trocar_senha(username):
+    status = True
+    op = ""
+    escolha = ""
+    while status != False:
+        status_confirmar = True
+        print("System > Logo abaixo coloque a sua senha para confirmar que realmente eh voce!")
+        senha = input("Digite [Senha] > ")
+        try:
+            if(user.verificar_credencial(login=username,senha=senha)):
+               
+                senha_one = input("Digite [Nova Senha] > ")
+                senha_two = input("Digite [Confirme Senha] > ")
+                op = input("System > Quer realmente trocar a senha? (Y/N) > ")
+                if op ==  "y":
+
+                    if(user.alterar_senha(login=username, new_senha=senha_one,confirmar_senha=senha_two)):
+                        status = False
+                        status_confirmar = False
+                        raise ValueError("System > senha foi modificada!")
+                elif op == "n":
+                    status = False
+                    status_confirmar = False
+        except TypeError as e:
+            print(e)
+        except ValueError as e:
+            print(e)
+
+        while status_confirmar != False:
+            escolha = input("System > Tentar denovo? (Y/N) >").lower()
+            try:
+                if escolha ==  "y":
+                    status_confirmar = False
+                    raise ValueError("System > Tentando novamente!")
+                elif escolha == "n":
+                    status = False
+                    status_confirmar = False
+            except ValueError as e:
+                print(e)
 
 def inicial_acesso():
     status = True
@@ -135,11 +168,6 @@ def listar_menu(componente):
     for i, value in enumerate(componente):
         print("[",i,"]", value)
 
-# try:
-#     print(user.adicionar_usuario(nome=nome,email=email,cpf=cpff,data_nascimento=data,login=nameUser,senha=senhaa))
-# except TypeError as e:
-#     print(e)
-
 username = inicial_acesso()
 status = True
 op = "0"
@@ -157,12 +185,14 @@ while(status != False):
             case "3":
                 status = sair_aposta(username=username)
             case "4":
-                raise ValueError("System > Em breve tera algo aqui!")
+                trocar_senha(username=username)
             case "5":
                 raise ValueError("System > Em breve tera algo aqui!")
             case "6":
                 raise ValueError("System > Em breve tera algo aqui!")
             case "7":
+                print("Pontos [saldo] > ",user.mostrar_pontos(login=username))
+            case "8":
                 raise ValueError("System > Em breve tera algo aqui!")
             case _:
                 raise ValueError("System > Exprecao invalida")    

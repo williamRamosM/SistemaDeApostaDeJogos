@@ -20,8 +20,18 @@ class UsuarioBD:
                  self.session.rollback()
                  raise ValueError("System > Encontramos uma tentativa de duplicado e foi neutralizado.")
 
-    def atualizar_usuario(self, id, nome, email, cpf, data_nascimento, login, senha):
-         a=1
+    def atualizar_senha(self, login, new_senha):
+        user = self.credencial_login(login=login)
+
+        if not user:
+            return False
+    
+        user.password = new_senha
+        self.session.add(user)
+        self.session.commit()
+        self.session.refresh(user)
+
+        return True
 
     def excluir_usuario(self, login):
         login_encontrado = select(Usuario).where(Usuario.login == login)
@@ -44,6 +54,14 @@ class UsuarioBD:
         user = select(Usuario).where(Usuario.login == login)
         return self.session.exec(user).first()
 
+    def capturar_saldo(self, login):
+        user = self.credencial_login(login=login)
+
+        if not user:
+             return None
+        
+        return user.points
+    
     # def mostrar_saldo(self, login):
     #     login_encontrado = select(Usuario).where(Usuario.login == login)
     #     user = self.session.exec(login_encontrado).first()
