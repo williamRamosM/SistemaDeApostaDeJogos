@@ -1,4 +1,4 @@
-from api_services.api_generico import ApiGenerico
+from services.jogos import Jogos
 
-api = ApiGenerico()
-print(api.encontrar_informacao(tipo="referees"))
+game = Jogos()
+print(game.sicronizar_dados_jogos())

@@ -107,6 +107,7 @@ class Usuario:
                 raise TypeError("System > Usuario nao existe!")
             
             return True
+
 # funçoes privadas.                        
     def _verificar_senha(self, senha):
         if(len(senha) != 8):
