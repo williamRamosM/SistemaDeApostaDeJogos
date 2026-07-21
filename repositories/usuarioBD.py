@@ -61,11 +61,3 @@ class UsuarioBD:
              return None
         
         return user.points
-    
-    # def mostrar_saldo(self, login):
-    #     login_encontrado = select(Usuario).where(Usuario.login == login)
-    #     user = self.session.exec(login_encontrado).first()
-    
-    #     if not user:
-             
-
