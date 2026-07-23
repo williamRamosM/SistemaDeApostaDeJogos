@@ -1,4 +1,5 @@
 from services.jogos import Jogos
 
 game = Jogos()
-game.sicronizar_dados_jogos()
+# game.sicronizar_dados_jogos()
+# game.atualizar_dodos()

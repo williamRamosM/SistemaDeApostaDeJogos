@@ -7,4 +7,8 @@ class JogoModel(BaseModel):
     team_two: int
     date_game: datetime
     status: bool = False
+
+class JogoAtualizarModel(BaseModel):
+    incremental_id: int
+    date_game: datetime
     
