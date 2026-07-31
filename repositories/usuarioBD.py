@@ -1,6 +1,6 @@
 from sqlmodel import Session, SQLModel, select
 from repositories.connectionBD import engine
-from repositories.Models.usuario import Usuario
+from repositories.models.usuario import Usuario
 from sqlalchemy.exc import IntegrityError
 
 class UsuarioBD:
@@ -61,3 +61,21 @@ class UsuarioBD:
              return None
         
         return user.points
+
+    def mostrar_usuario(self, cpf):
+        user = select(Usuario).where(Usuario.cpf == cpf)
+        dados = self.session.exec(user).first()
+
+        lista = (
+            dados.id,
+            dados.name,
+            dados.cpf,
+            dados.date_birth,
+            dados.email,
+            dados.login,
+            dados.points,
+            dados.status
+        )
+        return lista
+
+    

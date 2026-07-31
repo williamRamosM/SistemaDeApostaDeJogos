@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import date, datetime
 from decimal import Decimal
 
-class JogosModelSQL(SQLModel, table=True):
+class JogosModel(SQLModel, table=True):
     
     __tablename__ = "jogos"
 

@@ -1,9 +1,8 @@
 from api_services.api_generico import ApiGenerico
-from Models.jogo import JogoModel, JogoAtualizarModel
+from schemas.jogo import JogoSchemas, JogoAtualizarSchemas
 from sqlmodel import Session
 from repositories.connectionBD import engine
 from repositories.jogoBD import JogoBD
-from repositories.Models.jogos import JogosModelSQL
 
 class Jogos():
     
@@ -18,13 +17,13 @@ class Jogos():
                 if existe:
                     continue
 
-                JogoModel(incremental_id = dados["id"], team_one=  dados["homeTeam"]["id"], team_two=  dados["awayTeam"]["id"], date_game= dados["utcDate"], status= False)
+                JogoSchemas(incremental_id = dados["id"], team_one=  dados["homeTeam"]["id"], team_two=  dados["awayTeam"]["id"], date_game= dados["utcDate"], status= False)
                
                 banco.registrar_jogo( 
-                        incremental_id= JogoModel.incremental_id,
-                        team_one= JogoModel.team_one,
-                        team_two= JogoModel.team_two,
-                        date_game=JogoModel.date_game
+                        incremental_id= JogoSchemas.incremental_id,
+                        team_one= JogoSchemas.team_one,
+                        team_two= JogoSchemas.team_two,
+                        date_game=JogoSchemas.date_game
                     )
 
     def atualizar_dodos(self):
@@ -42,14 +41,20 @@ class Jogos():
                     status = True
 
                 if status:
-                    JogoAtualizarModel(incremental_id= existe.incremental_id ,date_game= dados["utcDate"])
+                    JogoAtualizarSchemas(incremental_id= existe.incremental_id ,date_game= dados["utcDate"])
                     banco.atualizar_jogo( 
-                        incremental_id=JogoAtualizarModel.incremental_id,
-                        date_game=JogoAtualizarModel.date_game
+                        incremental_id=JogoAtualizarSchemas.incremental_id,
+                        date_game=JogoAtualizarSchemas.date_game
                     )
 
+    def buscar_jogos(self):
+        with Session(engine) as session:
+            banco = JogoBD(session=session)
+            informacoes = banco.mostrar_jogo()
+        return informacoes
 
-
+    # def buscar_existencia_jogo(self):
+    #     while 
 
 
                 

@@ -9,6 +9,6 @@ class UsuarioModel(BaseModel):
     login: str
     senha: str
     
-class UsuarioModelForLogin(BaseModel):
+class UsuarioSchemasForLogin(BaseModel):
     login: str
     senha: str

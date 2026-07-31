@@ -2,8 +2,8 @@ from services.security_passworld import SecurityPassWorld
 from services.security_username import SecurityUsername
 from repositories.usuarioBD import UsuarioBD
 from repositories.connectionBD import engine
-from Models.usuario import UsuarioModelForLogin
-from Models.usuario import UsuarioModel
+from schemas.usuario import UsuarioSchemasForLogin
+from schemas.usuario import UsuarioSchemas
 from validate_docbr import CPF
 from sqlmodel import Session
 from datetime import date
@@ -12,7 +12,7 @@ import re
 class Usuario:
 
     def adicionar_usuario(self, nome, email, cpf, data_nascimento, login, senha):
-        usuario = UsuarioModel(nome=nome, email=email, cpf=cpf, data_nascimento=data_nascimento, login=login, senha=senha)
+        usuario = UsuarioSchemas(nome=nome, email=email, cpf=cpf, data_nascimento=data_nascimento, login=login, senha=senha)
         #data_nascimento_tratado: date = data_nascimento
         validate_username = SecurityUsername()
         cript = SecurityPassWorld()
@@ -90,7 +90,7 @@ class Usuario:
 
     def alterar_senha(self, login, new_senha, confirmar_senha):
         cript = SecurityPassWorld()
-        usuario = UsuarioModelForLogin(login=login,senha=new_senha)
+        usuario = UsuarioSchemasForLogin(login=login,senha=new_senha)
 
         if not self._confirmar_senha(password_one=new_senha, password_two=confirmar_senha):
             raise ValueError("System > as senhas digitadas nao sao identicas!")
