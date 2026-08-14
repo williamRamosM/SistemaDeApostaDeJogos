@@ -1,5 +1,4 @@
 from sqlmodel import Session, SQLModel, select
-from repositories.connectionBD import engine
 from repositories.models.usuario import Usuario
 from sqlalchemy.exc import IntegrityError
 
@@ -62,20 +61,49 @@ class UsuarioBD:
         
         return user.points
 
-    def mostrar_usuario(self, cpf):
+    def encontrar_usuario(self, cpf):
         user = select(Usuario).where(Usuario.cpf == cpf)
         dados = self.session.exec(user).first()
 
-        lista = (
-            dados.id,
-            dados.name,
-            dados.cpf,
-            dados.date_birth,
-            dados.email,
-            dados.login,
-            dados.points,
-            dados.status
-        )
+        if dados is not None:
+
+            dicionario = {
+                "Nivel de acesso - ": dados.incremental_id,
+                "Nome - ": dados.name,
+                "CPF - ": dados.cpf,
+                "Email - ": dados.email,
+                "Data -":  dados.date_birth,
+                "Username [Login] -":dados.login,
+                "Pontos -":dados.points,
+                "Pode apotar -":dados.status,
+            }
+        else:
+            dicionario = None
+    
+        return dicionario
+
+    def encontrar_todos_usuarios(self):
+        jogo = select(Usuario)
+        dados = self.session.exec(jogo).all()
+        lista = []
+        for value in dados:
+            dicionario = {
+                "Nivel de acesso - ": value.incremental_id,
+                "Nome - ": value.name,
+                "CPF - ": value.cpf,
+                "Email - ": value.email,
+                "Data -":  value.date_birth,
+                "Username [Login] -":value.login,
+                "Pontos -":value.points,
+                "Pode apotar -":value.status,
+            }
+            lista.append(dicionario)
         return lista
 
-    
+    def encontrar_indentificador(self, login):
+        user = select(Usuario).where(Usuario.login == login)
+        dados = self.session.exec(user).first()
+
+        if dados is not None:
+            return dados.incremental_id
+        return None

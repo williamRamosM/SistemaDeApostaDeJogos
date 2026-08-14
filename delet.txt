@@ -1,3 +1,0 @@
-DATABASE_URL=postgresql://postgres:[postgresifrs]@db.embzpfhwfnwawyzcsmkp.supabase.co:5432/postgres
-PEPPER_SECRET = 69b832c65d13dab2ca8b2bc26c3503d151be3cc574250cf36b3aad85ae1d5c68
-print(secrets.token_hex(32))

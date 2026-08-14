@@ -17,13 +17,14 @@ class Jogos():
                 if existe:
                     continue
 
-                JogoSchemas(incremental_id = dados["id"], team_one=  dados["homeTeam"]["id"], team_two=  dados["awayTeam"]["id"], date_game= dados["utcDate"], status= False)
-               
+                jogo_schemas = JogoSchemas(incremental_id = dados["id"], team_one=  dados["homeTeam"]["id"], team_two=  dados["awayTeam"]["id"], date_game= dados["utcDate"], status= False)
+
                 banco.registrar_jogo( 
-                        incremental_id= JogoSchemas.incremental_id,
-                        team_one= JogoSchemas.team_one,
-                        team_two= JogoSchemas.team_two,
-                        date_game=JogoSchemas.date_game
+                        incremental_id= jogo_schemas.incremental_id,
+                        team_one= jogo_schemas.team_one,
+                        team_two= jogo_schemas.team_two,
+                        date_game=jogo_schemas.date_game,
+                        status=jogo_schemas.status
                     )
 
     def atualizar_dodos(self):
@@ -41,20 +42,36 @@ class Jogos():
                     status = True
 
                 if status:
-                    JogoAtualizarSchemas(incremental_id= existe.incremental_id ,date_game= dados["utcDate"])
+                    jogo_atualizar_schemas = JogoAtualizarSchemas(incremental_id= existe.incremental_id ,date_game= dados["utcDate"])
                     banco.atualizar_jogo( 
-                        incremental_id=JogoAtualizarSchemas.incremental_id,
-                        date_game=JogoAtualizarSchemas.date_game
+                        incremental_id=jogo_atualizar_schemas.incremental_id,
+                        date_game=jogo_atualizar_schemas.date_game
                     )
 
     def buscar_jogos(self):
         with Session(engine) as session:
             banco = JogoBD(session=session)
-            informacoes = banco.mostrar_jogo()
+            informacoes = banco.mostrar_jogo(status=False)
         return informacoes
 
-    # def buscar_existencia_jogo(self):
-    #     while 
+    def buscar_existencia_jogo(self, id):
+        with Session(engine) as session:
+            banco = JogoBD(session=session)
+            existencia = banco.buscar_existencia(id=id) 
 
+            return existencia
 
-                
+    def ativar_jogo(self, id):
+        with Session(engine) as session:
+            banco = JogoBD(session=session)
+            banco.atualizar_status(incremental_id=id)
+        return "Atualizado status!"
+
+    def mostrar_jogo_usuario(self):
+        with Session(engine) as session:
+            try:
+                banco = JogoBD(session=session)
+                informacoes = banco.mostrar_jogo(status=True)
+            except ValueError as e:
+                print(e)
+        return informacoes

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import date
 
-class UsuarioModel(BaseModel):
+class UsuarioSchemas(BaseModel):
     nome: str
     email: str 
     cpf: str

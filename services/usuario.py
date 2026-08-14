@@ -108,6 +108,12 @@ class Usuario:
             
             return True
 
+    def mostrar_indentificador(self, login):
+        with Session(engine) as session:
+            banco = UsuarioBD(session=session)
+            return banco.encontrar_indentificador(login=login)
+
+    
 # funçoes privadas.                        
     def _verificar_senha(self, senha):
         if(len(senha) != 8):
