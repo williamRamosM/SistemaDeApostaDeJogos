@@ -107,3 +107,32 @@ class UsuarioBD:
         if dados is not None:
             return dados.incremental_id
         return None
+
+    def encontrar_id(self, login):
+            user = select(Usuario).where(Usuario.login == login)
+            dados = self.session.exec(user).first()
+    
+            if dados is not None:
+                return dados.id
+            return None
+
+    def encontrar_name(self, id):
+        user = select(Usuario).where(Usuario.id == id)
+        dados = self.session.exec(user).first()
+
+        if dados is not None:
+            return dados.name
+        return None
+    
+    def atualizar_pontos_user(self, user_id, pontos, status):
+        user = select(Usuario).where(Usuario.id == user_id)
+        dados = self.session.exec(user).first()
+
+        if status == True:
+            dados.points += pontos
+        else:
+            dados.points -= pontos
+
+        self.session.add(dados)
+        self.session.commit()
+

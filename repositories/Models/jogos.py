@@ -11,5 +11,8 @@ class JogosModel(SQLModel, table=True):
     incremental_id: int
     team_one: int
     team_two: int
+    placar_one: Optional[int] = None
+    placar_two: Optional[int] = None
     date_game: datetime
     status: bool = Field(default=False)
+    jogo_iniciado: bool = Field(default=False)

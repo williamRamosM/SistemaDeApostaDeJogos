@@ -113,7 +113,16 @@ class Usuario:
             banco = UsuarioBD(session=session)
             return banco.encontrar_indentificador(login=login)
 
-    
+    def mostrar_id(self, login):
+         with Session(engine) as session:
+            banco = UsuarioBD(session=session)
+            return banco.encontrar_id(login=login)
+
+    def controlar_pontos(self, user_id, pontos, status):
+        with Session(engine) as session:
+            banco = UsuarioBD(session=session)
+            banco.atualizar_pontos_user(user_id=user_id, pontos=pontos, status=status)
+
 # funçoes privadas.                        
     def _verificar_senha(self, senha):
         if(len(senha) != 8):

@@ -1,24 +1,28 @@
 from services.usuario import Usuario
 from services.administrador import Administrador
+from services.aposta import Aposta
 from services.jogos import Jogos
+from services.time import Time
 from datetime import date
 
 class Compilar:
 
     def __init__(self):
         self.user = Usuario()
+        self.aposta = Aposta()
         self.administrador = Administrador()
         self.jogo = Jogos()
-        self.menu_tuple = ("Sair", "Status da minha aposta", "Multiplicar a aposta", "Cancelar minha participação nas apostas","Trocar a senha","Resultados de jogos anteriores de uma seleção ","Apostas ativas","Saldo de pontos","Ver o ranking de apostadores")
+        self.time = Time()
+        self.menu_tuple = ("Sair", "Status da minha aposta", "Multiplicar a aposta", "Cancelar minha participação nas apostas","Trocar a senha","Resultados de jogos anteriores de uma seleção ","Apostas ativas","Saldo de pontos","Ver o ranking de apostadores","Registrar uma aposta")
         self.menu_tupleAdmin = ("Sair", "Ver dados de usuarios", "Ver dados de um usuario", "Ver dados de aposta de uma partida","Criar uma aposta","Ver o ranking de apostadores")
 
-    def criar_aposta_admin(self):
+    def _criar_aposta_admin(self):
         status = False
         status2 = False
         valor = ""
         while status != True:
             try:
-                valor = self._auxiliar_escolha_admin()
+                valor = self._auxiliar_escolha(status=False)
                 if self.jogo.buscar_existencia_jogo(id=valor):
                     status = True 
                 else:
@@ -33,7 +37,7 @@ class Compilar:
 
                 match(escolha):
                     case 1:
-                        self.jogo.ativar_jogo(id=valor)
+                        print(self.jogo.ativar_jogo(id=valor))
                         status2 = True
                     case 2:
                         status2 = True
@@ -42,22 +46,140 @@ class Compilar:
             except ValueError as e:
                 print(e)
 
-    def _auxiliar_escolha_admin(self):
-        dado = self.jogo.buscar_jogos()
-        for value, jogo in enumerate(dado):
-            print("[",value + 1,"]", jogo['Jogo_Times'], jogo['Data'])
+    def _mostrar_classificacao(self):
+        dado = self.aposta.montar_classificacao_users()
+        for dados in dado:
+            print(dados['posicao']," - ","Nome:", dados['user'],"Acerto(s): ", dados['acerto'])
+
+    def _mostrar_informacoes_jogo_expecifico(self):
+        dado = self.jogo.buscar_jogos(status=True)
+        if len(dado) == 0:
+            raise ValueError("System > nao tem como ver algo que nao existe, desculpe.")
         try:
-            num = int(input("Digite >"))
-
-            if(num > len(dado) or num < 1):
-                raise ValueError("System > Desculpe mas a opcao escolhida nao existe!")
-
-            jogo = dado[num-1]
+            value = self._auxiliar_escolha(status=True)
+            dados = self.administrador.mostrar_infors_partida(game_id=value)
+            print("Time da casa",dados["time1"], "Apostadores do time da casa:", dados["qtd_apostadores1"], "ODDs desse time:", dados["odds1"], "Time de fora",dados["time2"], "Apostadores do time de fora:", dados["qtd_apostadores2"], "ODDs desse time:", dados["odds2"])
         except ValueError as e:
             print(e)
-            
-        return jogo["ID"]
 
+    def _apostar_user(self, user):
+        carteira_pontos = self.user.mostrar_pontos(login=user)
+        status = False
+        status2 = False
+        status3 = False
+        valor = ""
+        pontos_escolhidos = 0
+        escolhido_id = 0
+        dado = self.jogo.buscar_jogos(status=True)
+        if len(dado) == 0:
+            raise ValueError("System > Desculpe, mas nao tem jogos!")
+        else:
+            while status != True:
+                try:
+                    valor = self._auxiliar_escolha(status=True)
+                    if self.jogo.buscar_existencia_jogo(id=valor):
+                        status = True 
+                    else:
+                        raise ValueError("System > Nao foi encontrado, confira se digitou corretamente!")
+                except ValueError as e:
+                    print(e)
+            while status2 != True:
+                try: 
+                    dado = self.jogo.buscar_times(id=valor)
+                    for value, team in enumerate(dado):
+                        print("[",value + 1,"]", team)
+
+                    num = int(input("Digite [Quem ganha?] >"))
+                    
+                    if(num > len(dado) or num < 1):
+                        raise ValueError("System > Desculpe mas a opcao escolhida nao existe!")
+                    
+                    escolhido_id = dado[num-1]
+                    status2 = True
+                except ValueError as e:
+                    print(e)
+
+            while status3 != True:
+                try: 
+                    num = int(input("Digite [Pontos] >"))
+                    calculo = carteira_pontos - num
+                    if(calculo < 0):
+                        raise ValueError("System > Desculpe mas voce nao possui tantos pontos para apostar!")
+                    pontos_escolhidos = num
+                    status3 = True
+                except ValueError as e:
+                    print(e)
+            id = self.jogo.mostrar_id(id=valor)
+            user_id = self.user.mostrar_id(login=user)
+            self.aposta.fazer_aposta(user=user_id, jogo_id=id, time_id=escolhido_id, pontos=pontos_escolhidos)
+            self.user.controlar_pontos(user_id=user_id, pontos=pontos_escolhidos, status=False)
+            print("Feito!")
+        
+    def _auxiliar_escolha(self, status):
+        dado = self.jogo.buscar_jogos(status=status)
+        for value, jogo in enumerate(dado):
+            print("[", value + 1, "]", jogo['Jogo_Times'], jogo['Data'])
+        
+        num = int(input("Digite >"))
+
+        if num > len(dado) or num < 1:
+            raise ValueError("System > Desculpe mas a opcao escolhida nao existe!")
+
+        escolhido_id = dado[num - 1]
+        return escolhido_id["ID"]
+
+    def _auxiliar_mostrar_aposta(self, user, status):
+        user_id = self.user.mostrar_id(login=user)
+        dado = self.aposta.mostrar_apostas(user_id=user_id, status=status)
+        for dados in dado:
+            print("Time: ",dados['time_escolhido'],"Pontos apostados: ", dados['pontos_apostados'],"Status: ", dados['status'])
+
+    def _auxiliar_mostrar_apostas_ativas(self):
+        dados = self.aposta.montar_aposta()
+        for value in dados:
+            print("Jogo: ", value['jogo_id'],"Data: ", value['data'], "Time 1:",value['team_one'], "ODD Time 1:",value['tupla_odd1'], "Time 2: ",value['team_two'],"ODD Time 2: ",value['tupla_odd2'])
+
+    def _auxiliar_multiplicar_aposta(self, user_login):
+        user_id = self.user.mostrar_id(login=user_login)
+        dado = self.aposta.mostrar_apostas(user_id=user_id, status="pendente")
+
+        if len(dado) == 0:
+            raise ValueError("System > Desculpe mas voce nao possui nenhum aposta ativa ainda!")    
+        
+        for value, dados in enumerate(dado):
+            print("[",value+1,"] Time: ",dados['time_escolhido'],"Pontos apostados: ", dados['pontos_apostados'],"Status: ", dados['status'])
+
+        num = int(input("Digite [Qual a aposta?] >"))
+
+        if(num > len(dado) or num < 1):
+            raise ValueError("System > Desculpe mas a opcao escolhida nao existe!")
+        
+        escolhido_id = dado[num-1]
+        id = escolhido_id["id"]
+        num_qtd = int(input("Digite [Quanto vai multiplicar?] >"))
+        self.aposta.aumentar_aposta(qtd=num_qtd,user_id=user_id,game_id=id)
+
+    def _auxiliar_mostrar_times(self):
+        dado_time = self.time.mostrar_times()
+        
+        for value, dados_time in enumerate(dado_time):
+            print("[", value+1,"] Time: ",dados_time['nome'])
+        num = int(input("Digite [Qual a aposta?] >"))
+        
+        if(num > len(dado_time) or num < 1):
+            raise ValueError("System > Desculpe mas a opcao escolhida nao existe!")
+        
+        escolhido_id = dado_time[num-1]
+        id_time = escolhido_id["id_incremental"]
+
+        dado = self.jogo.mostrar_jogo_time(id_time=id_time)
+
+        if(len(dado) == 0):
+            raise ValueError("System > nao temos noticias ainda!")
+        
+        for dados in dado:
+            print("Data: ",dados['data'],"Time 1: ", dados['team_one'],"gols: ", dados['placar_one'], "Time 2:",dados['team_two'],"gols: ", dados['placar_two'])
+            
     def _procurar_usuario(self):
         cpf = input("digite [CPF] >")
         value = self.administrador.mostrar_usuario_expecifico(cpf=cpf)
@@ -247,21 +369,23 @@ class Compilar:
                             case "0":
                                 status = False
                             case "1":
-                                raise ValueError("System > Em breve tera algo aqui!")
+                                self._auxiliar_mostrar_aposta(user=login, status="pendente")
                             case "2":
-                                raise ValueError("System > Em breve tera algo aqui!")
+                                self._auxiliar_multiplicar_aposta(user_login=login)
                             case "3":
                                 status = self._sair_aposta(username=login)
                             case "4":
                                 self._trocar_senha(username=login)
                             case "5":
-                                raise ValueError("System > Em breve tera algo aqui!")
+                                self._auxiliar_mostrar_times()
                             case "6":
-                                raise ValueError("System > Em breve tera algo aqui!")
+                                self._auxiliar_mostrar_apostas_ativas()
                             case "7":
                                 print("Pontos [saldo] > ",self.user.mostrar_pontos(login=login))
                             case "8":
-                                raise ValueError("System > Em breve tera algo aqui!")
+                                self._mostrar_classificacao
+                            case "9":
+                                self._apostar_user(user=login)
                             case _:
                                 raise ValueError("System > Exprecao invalida")    
 
@@ -281,11 +405,11 @@ class Compilar:
                             case "2":
                                 self._procurar_usuario()
                             case "3":
-                                raise ValueError("System > Em breve tera algo aqui!")
+                                self._mostrar_informacoes_jogo_expecifico()
                             case "4":
-                                print("gg")
+                                self._criar_aposta_admin
                             case "5":
-                                raise ValueError("System > Em breve tera algo aqui!")
+                                self._mostrar_classificacao()
                             case _:
                                 raise ValueError("System > Exprecao invalida")    
 
