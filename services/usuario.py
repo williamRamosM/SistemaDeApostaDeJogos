@@ -67,6 +67,17 @@ class Usuario:
             if not user.status:
                 raise TypeError("System > Essa conta foi desativada!")
         return True
+
+    def verificar_status_user(self, login):
+        with Session(engine) as session:
+            banco = UsuarioBD(session)
+            user = banco.credencial_login(login=login)
+            status = False
+            if user.status is not False:
+                status = True
+            
+            return status 
+
     
     def remover_usuario(self, login):
         with Session(engine) as session:

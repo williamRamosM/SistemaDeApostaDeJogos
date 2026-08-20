@@ -121,7 +121,7 @@ class UsuarioBD:
         dados = self.session.exec(user).first()
 
         if dados is not None:
-            return dados.name
+            return dados.login
         return None
     
     def atualizar_pontos_user(self, user_id, pontos, status):

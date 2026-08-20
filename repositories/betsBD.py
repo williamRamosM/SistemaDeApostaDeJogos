@@ -23,20 +23,15 @@ class BetsBD:
         bet = select(BetsModel).where(BetsModel.game_id == game_id, BetsModel.status == status)
         return self.session.exec(bet).all()
 
-    def encontrar_apostas(self, user_id, status):
+    def encontrar_apostas_user(self, user_id, status):
         bet = select(BetsModel).where(BetsModel.user_id == user_id, BetsModel.status == status)
         dados = self.session.exec(bet).all()
-        lista = []
-            
-        for value in dados:
-                dicionario = {
-                    "time_escolhido": value.time_escolhido_id,
-                    "pontos_apostados": value.points,
-                    "status": value.status,
-                    "id": value.game_id
-                }
-                lista.append(dicionario)
-        return lista
+        return dados
+
+    def encontar_apostas_id(self, user_id):
+        bet = select(BetsModel).where(BetsModel.user_id == user_id)
+        dados = self.session.exec(bet).all()
+        return dados
     
     def atualizar_aposta_status(self, user_id, game_id, status, new_status):
         dados = self.buscar_aposta(user_id=user_id, game_id=game_id, status=status)
@@ -44,6 +39,11 @@ class BetsBD:
             aposta.status = new_status
             self.session.add(aposta)
         self.session.commit()
+
+    def buscar_aposta_pendente(self, user_id, game_id):
+        bet = select(BetsModel).where(BetsModel.user_id == user_id, BetsModel.game_id == game_id, BetsModel.status == "pendente")
+        dados = self.session.exec(bet).first()
+        return dados
 
     def atualizar_aposta_pontos(self, user_id, game_id, status, new_points):
         dados = self.buscar_aposta(user_id=user_id, game_id=game_id, status=status)

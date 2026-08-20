@@ -64,6 +64,7 @@ class Compilar:
 
     def _apostar_user(self, user):
         carteira_pontos = self.user.mostrar_pontos(login=user)
+        user_id = self.user.mostrar_id(login=user)
         status = False
         status2 = False
         status3 = False
@@ -83,6 +84,11 @@ class Compilar:
                         raise ValueError("System > Nao foi encontrado, confira se digitou corretamente!")
                 except ValueError as e:
                     print(e)
+            jogo_id = self.jogo.mostrar_id(id=valor)
+            dados_aposta = self.aposta.capturar_informacao_aposta(user_id=user_id, game_id=jogo_id)
+            if dados_aposta is not None:
+                carteira_pontos += dados_aposta["pontos_apostados"]
+
             while status2 != True:
                 try: 
                     dado = self.jogo.buscar_times(id=valor)
@@ -102,6 +108,8 @@ class Compilar:
             while status3 != True:
                 try: 
                     num = int(input("Digite [Pontos] >"))
+                    if num <= 0:
+                        raise ValueError("System > O valor informado nao eh considerado valido para o sistema!")
                     calculo = carteira_pontos - num
                     if(calculo < 0):
                         raise ValueError("System > Desculpe mas voce nao possui tantos pontos para apostar!")
@@ -109,9 +117,11 @@ class Compilar:
                     status3 = True
                 except ValueError as e:
                     print(e)
-            id = self.jogo.mostrar_id(id=valor)
-            user_id = self.user.mostrar_id(login=user)
-            self.aposta.fazer_aposta(user=user_id, jogo_id=id, time_id=escolhido_id, pontos=pontos_escolhidos)
+
+            if dados_aposta is not None:
+                self.user.controlar_pontos(user_id=user_id, pontos=dados_aposta["pontos_apostados"], status=True)
+
+            self.aposta.fazer_aposta(user=user_id, jogo_id=jogo_id, time_id=escolhido_id, pontos=pontos_escolhidos)
             self.user.controlar_pontos(user_id=user_id, pontos=pontos_escolhidos, status=False)
             print("Feito!")
         
@@ -128,9 +138,9 @@ class Compilar:
         escolhido_id = dado[num - 1]
         return escolhido_id["ID"]
 
-    def _auxiliar_mostrar_aposta(self, user, status):
+    def _auxiliar_mostrar_aposta(self, user):
         user_id = self.user.mostrar_id(login=user)
-        dado = self.aposta.mostrar_apostas(user_id=user_id, status=status)
+        dado = self.aposta.mostrar_apostas_id(user_id=user_id)
         for dados in dado:
             print("Time: ",dados['time_escolhido'],"Pontos apostados: ", dados['pontos_apostados'],"Status: ", dados['status'])
 
@@ -291,12 +301,18 @@ class Compilar:
 
     def inicial_acesso(self):
         status = True
+        status_ficar = True
+        num = None
+        login = None
         while status != False:
-            print("sing up [1] - login [2]")
+            print("Sair [0] - Sing up [1] - Login [2]")
             escolha = input("Digite > ")
 
             try:
                 match(escolha):
+                    case "0":
+                        status = False
+                        status_ficar = False
                     case "1":
                         self._sing_up_user()
                     case "2":
@@ -308,7 +324,7 @@ class Compilar:
             except ValueError as e:
                 print(e)
         
-        self._menu(num=num, login=login)
+        self._menu(num=num, login=login, status=status_ficar)
 
     def _sair_aposta(self, username):  
         status = True
@@ -355,42 +371,46 @@ class Compilar:
         for i, value in enumerate(componente):
             print("[",i,"]", value)
 
-    def _menu(self, num, login):
-        status = True
-
+    def _menu(self, num:None, login:None, status):
+    
         match(num):
             case 1:
                 print("System > Voce esta em uma conta de CLIENTE")
                 while(status != False):
-                    self._listar_menu(componente=self.menu_tuple)
-                    try:
-                        op = input("Digite > ")
-                        match(op):
-                            case "0":
-                                status = False
-                            case "1":
-                                self._auxiliar_mostrar_aposta(user=login, status="pendente")
-                            case "2":
-                                self._auxiliar_multiplicar_aposta(user_login=login)
-                            case "3":
-                                status = self._sair_aposta(username=login)
-                            case "4":
-                                self._trocar_senha(username=login)
-                            case "5":
-                                self._auxiliar_mostrar_times()
-                            case "6":
-                                self._auxiliar_mostrar_apostas_ativas()
-                            case "7":
-                                print("Pontos [saldo] > ",self.user.mostrar_pontos(login=login))
-                            case "8":
-                                self._mostrar_classificacao
-                            case "9":
-                                self._apostar_user(user=login)
-                            case _:
-                                raise ValueError("System > Exprecao invalida")    
+                    informacao = self.user.verificar_status_user(login=login)
+                    if informacao is not False:
+                        self._listar_menu(componente=self.menu_tuple)
+                        try:
+                            op = input("Digite > ")
+                            match(op):
+                                case "0":
+                                    status = False
+                                    self.inicial_acesso()
+                                case "1":
+                                    self._auxiliar_mostrar_aposta(user=login)
+                                case "2":
+                                    self._auxiliar_multiplicar_aposta(user_login=login)
+                                case "3":
+                                    status = self._sair_aposta(username=login)
+                                case "4":
+                                    self._trocar_senha(username=login)
+                                case "5":
+                                    self._auxiliar_mostrar_times()
+                                case "6":
+                                    self._auxiliar_mostrar_apostas_ativas()
+                                case "7":
+                                    print("Pontos [saldo] > ",self.user.mostrar_pontos(login=login))
+                                case "8":
+                                    self._mostrar_classificacao()
+                                case "9":
+                                    self._apostar_user(user=login)
+                                case _:
+                                    raise ValueError("System > Exprecao invalida")    
 
-                    except ValueError as e:
-                        print(e)
+                        except ValueError as e:
+                            print(e)
+                    else:
+                        raise ValueError("System > voce foi desconectado por nao ter pontos o suficiente!")
             case 2:
                 print("System > Voce esta em uma conta de ADMIN")
                 while(status != False):

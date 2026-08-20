@@ -34,8 +34,34 @@ class Aposta():
     def mostrar_apostas(self, user_id, status):
         with Session(engine) as session:
             banco = BetsBD(session=session)
-            informacoes = banco.encontrar_apostas(user_id=user_id,status=status)
-        return informacoes
+            dados = banco.encontrar_apostas_user(user_id=user_id,status=status)
+
+            lista = [] 
+            for value in dados:
+                dicionario = {
+                    "time_escolhido": value.time_escolhido_id,
+                    "pontos_apostados": value.points,
+                    "status": value.status,
+                    "id": value.game_id
+                }
+                lista.append(dicionario)
+        return lista
+
+    def mostrar_apostas_id(self, user_id):
+        with Session(engine) as session:
+            banco = BetsBD(session=session)
+            dados = banco.encontar_apostas_id(user_id=user_id)
+
+            lista = [] 
+            for value in dados:
+                dicionario = {
+                    "time_escolhido": value.time_escolhido_id,
+                    "pontos_apostados": value.points,
+                    "status": value.status,
+                    "id": value.game_id
+                }
+                lista.append(dicionario)
+        return lista
 
     def calculo_odds(self, jogo_id, time_id, time_oposto_id, status):
         with Session(engine) as session:
@@ -148,6 +174,8 @@ class Aposta():
                 else:
                     banco2.atualizar_aposta_status(user_id=dados.user_id, game_id=game_banco_id, status="pendente", new_status="perdido")
 
+                self.remover_falta_saldo(session=session,id_user=dados.user_id)
+
     def montar_classificacao_users(self):
         with Session(engine) as session:
             banco = BetsBD(session=session)
@@ -166,4 +194,24 @@ class Aposta():
 
             return lista
 
+    def remover_falta_saldo(self, session, id_user):
+        banco_user = UsuarioBD(session=session)
+        login = banco_user.encontrar_name(id=id_user)
+        saldo = banco_user.capturar_saldo(login=login)
+        if saldo <= 0:
+            banco_user.excluir_usuario(login=login)
+                
+    def capturar_informacao_aposta(self, user_id, game_id):
+        with Session(engine) as session:
+            banco = BetsBD(session=session)
+            dados = banco.buscar_aposta_pendente(user_id=user_id, game_id=game_id)
 
+            if dados is None:
+                return None
+            
+            return {
+                "aposta_id": dados.id,
+                "time_escolhido": dados.time_escolhido_id,
+                "pontos_apostados": dados.points
+            }
+            
