@@ -6,6 +6,7 @@ from services.time import Time
 from datetime import date
 
 class Compilar:
+    """Uma class que serve para agrupar as funçoes de outras class e compilar para serem utilizadas"""
 
     def __init__(self):
         self.user = Usuario()
